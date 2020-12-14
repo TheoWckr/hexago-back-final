@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "jest",
-    "publishToHeroku": "cd ../ && git subtree push --prefix back heroku master || true"
+    "publishToHeroku": "cd  && git subtree push --prefix back heroku master || true"
   },
   "dependencies": {
     "async": "^3.2.0",

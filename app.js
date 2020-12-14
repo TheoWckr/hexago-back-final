@@ -18,7 +18,7 @@ mongoose.connect("'"+ process.env.MONGODB_URI +"'", { useNewUrlParser: true })
     .catch(err => console.log(err));
 
 
-let indexRouter = require('./routes/index');
+let indexRouter = require('./routes');
 let usersRouter = require('./routes/users');
 let locationsRouter = require('./routes/locations');
 let userProfile = require('./routes/userProfile');
