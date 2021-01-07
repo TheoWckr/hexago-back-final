@@ -49,6 +49,10 @@ let usersSchema = new Schema({
 
     },
     roleId: Number,
+    verification: {
+        isVerified: {type: Boolean},
+        token: {type: String}
+    }
 }, {
     collection: 'users',
     categories: Array,

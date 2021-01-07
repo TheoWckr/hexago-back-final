@@ -10,6 +10,8 @@ const auth = require("../middleware/auth");
 const parseImageUpload = require('../middleware/cloudinary');
 const uploadImage = require('../cloudinary');
 const cloudinary = require('cloudinary');
+const { v4: uuidv4 } = require('uuid');
+const nodemailer = require("nodemailer");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -34,6 +36,26 @@ function handleError(err) {
     // Something happened in setting up the request that triggered an Error
     return {err: err.message}
   }
+}
+
+async function sendVerificationEmail(token, email, id) {
+  let transporter = nodemailer.createTransport({ 
+    service: 'gmail',
+    auth: { 
+     user: process.env.SMTP_EMAIL, 
+     pass: process.env.SMTP_PWD
+    }
+   }); 
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: '"Hexago" <' + process.env.SMTP_EMAIL + '>', // sender address
+    to: email, // list of receivers
+    subject: "Email de vérfication", // Subject line
+    text: "Bonjour,\n\nMerci de vous être inscrit sur la plateforme Hexago !\n\nPour finaliser votre inscription veuillez valider votre email en cliquant sur le lien suivant:\n\nhttp://localhost:3000/email/" + id + "/verify/" + token + "\n\nBons jeux :)\n\nL'équipe Hexago", // plain text body
+  });
+
+  console.log("Message sent: %s", info.messageId);
 }
 
 
@@ -125,6 +147,10 @@ router.post(
             img: {
               url: "",
               id: ""
+            },
+            verification: {
+              isVerified: false,
+              token: uuidv4()
             }
           });
 
@@ -155,6 +181,7 @@ router.post(
               },
               (err, token) => {
                   if (err) throw err;
+                  sendVerificationEmail(user.verification.token, user.email, user._id)
                   res.status(200).json({
                       token
                   });
@@ -373,7 +400,6 @@ router.delete('/:id', async (req, res, next) => {
       });
     else {
       const user = await User.findById(req.params.id);
-      console.log("eeeeeeeeeeeeeeeeeeeee" + user.image.id)
       if (user.img.id != "") {
         await cloudinary.v2.uploader.destroy(user.img.id, { invalidate: true, resource_type: "raw" }, function(result, error) { if (error) { console.log(error)} else {console.log(result)} });
       }
@@ -394,6 +420,69 @@ router.delete('/:id', async (req, res, next) => {
           }
       })
     }
+});
+
+/**
+ * @api {get} /users/:id/verify Send Verify User email
+ * @apiName Send Verify User email
+ * @apiGroup User
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *  {
+      "msg": "Verify email sended."
+    }
+ */
+router.get('/:id/verify', async (req, res, next) => {
+  if (!req.params.id) res.json({
+    err: 'Please provide an id param.'
+  });
+  else if (req.params.id.length !== 24)
+    res.json({
+      err: 'Please provide a valid id param.'
+    });
+  else {
+    const user = await User.findById(req.params.id);
+    sendVerificationEmail(user.verification.token, user.email, user._id)
+    res.json({
+      msg: 'Verify email sended.'
+    })
+  }
+});
+
+/**
+ * @api {post} /users/:id/verify/:token Verify User email
+ * @apiName Verify User email
+ * @apiGroup User
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *  {
+      "msg": "User email verified."
+    }
+ */
+router.get('/:id/verify/:token', async (req, res, next) => {
+  if (!req.params.id && !req.params.token) res.json({
+    err: 'Please provide a token and id param.'
+  });
+  else if (req.params.id.length !== 24)
+    res.json({
+      err: 'Please provide a valid id param.'
+    });
+  else {
+    const user = await User.findById(req.params.id);
+    if (req.params.token === user.verification.token) {
+      user.verification.isVerified = true
+      await user.save()
+      res.json({
+        msg: 'User email verified.'
+      })
+    } else {
+      res.json({
+        err: 'Unvalid token'
+      })
+    }
+  }
 });
 
 /**
