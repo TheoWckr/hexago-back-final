@@ -309,16 +309,56 @@ router.post(
  */
 router.patch("/update", parseImageUpload(),
   [
-    check("username", "Please Enter a Valid Firstname").not().isEmpty(),
+    check("username", "Please Enter a Valid Username").not().isEmpty(),
     check("firstname", "Please Enter a Valid Firstname").not().isEmpty(),
     check("lastname", "Please Enter a Valid Lastname").not().isEmpty(),
     check("email", "Please enter a valid email").isEmail(),
     check("password", "Please enter a valid password").isLength({ min: 6 })
   ], auth, async (req, res) => {
+    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log(errors)
+          return res.status(400).json({
+              errors: errors.array()
+          });
+    }
   try {
     // request.user is getting fetched from Middleware after token authentication
     const user = await User.findById(req.user.id);
 
+    let {
+      email,
+      username
+    } = req.body
+    let emailUser = await User.find({
+     email
+    });
+    console.log(emailUser)
+    if (emailUser.length > 1) {
+        return res.status(400).json({
+            msg: "Critical error This email already exists (twice or more)"
+        });
+    } else if (emailUser.length == 1) {
+      if (!emailUser[0]._id.equals(user._id)) {
+        return res.status(400).json({
+            msg: "This email already exists"
+        });
+      }
+    }
+    let usernameUser = await User.find({
+      username
+    });
+    if (usernameUser.length > 1) {
+      return res.status(400).json({
+        msg: "Critical error This username already exists (twice or more)"
+      });
+    } else if (usernameUser.length == 1) {
+      if (!usernameUser[0]._id.equals(user._id)) {
+        return res.status(400).json({
+            msg: "This username already exists"
+        });
+      }
+    }
     if (req.body.username) {
       user.username = req.body.username
     }
@@ -326,6 +366,7 @@ router.patch("/update", parseImageUpload(),
     if (req.body.firstname) {
       user.firstname = req.body.firstname
     }
+
     if (req.body.lastname) {
       user.lastname = req.body.lastname
     }
@@ -369,7 +410,9 @@ router.patch("/update", parseImageUpload(),
         }
     );
   } catch (e) {
-    res.send({ message: "Error in Fetching user" });
+    res.status(400).json({
+      errors: "Error in updating user: " + e
+    })
   }
 });
 
