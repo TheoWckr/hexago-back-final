@@ -42,7 +42,7 @@ router.post('/create', (req, res, next) => {
         if (err) res.json({err: err});
         else {
             if (content) {
-                res.json({user: content, msg: 'location created successfully.'})
+                res.json({content: content, msg: 'location created successfully.'})
             } else {
                 res.json({err: 'Unable to create this location.'})
             }

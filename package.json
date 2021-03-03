@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "async": "^3.2.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.23.0",
     "cookie-parser": "~1.4.4",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "helmet": "^3.21.2",
-    "jest": "^25.5.4"
+    "jest": "^25.5.4",
+    "mockingoose": "^2.13.2"
   }
 }
