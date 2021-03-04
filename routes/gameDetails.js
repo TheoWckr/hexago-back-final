@@ -127,7 +127,6 @@ router.get('/', (req, res, next) => {
     // search by release date
     if (req.query.releaseDate) {
         let releaseDate = new Date( req.query.releaseDate);
-        console.log(releaseDate);
         data['releaseDate'] = {
             $gte: new Date(new Date(0).setFullYear(releaseDate.getFullYear(), 0, 1)),
             $lt: new Date(new Date(0).setFullYear(releaseDate.getFullYear(), 11, 31))
@@ -167,7 +166,6 @@ router.get('/', (req, res, next) => {
         whatToSort[req.query.whatToSortBy] = req.query.sortValue;
     }
 
-    console.log(data);
     query = GameDetails.find(data).populate('genres').sort(whatToSort);
 
     //pagination handling
@@ -261,7 +259,6 @@ let genreDoNotExist = [];
 
 router.post('/create', parseImageUpload(), async(req, res, next) => {
     // check if game already exists
-    console.log(req.body)
     const errorCheck = [];
     let gameToCreate = req.body;
     gameToCreate.img = {url: "", id: ""}

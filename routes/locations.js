@@ -26,7 +26,6 @@ function logHandleError(err) {
 //get all locations
 router.get('/', (req, res, next) => {
     Locations.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });
@@ -42,7 +41,7 @@ router.post('/create', (req, res, next) => {
         if (err) res.json({err: err});
         else {
             if (content) {
-                res.json({user: content, msg: 'location created successfully.'})
+                res.json({content: content, msg: 'location created successfully.'})
             } else {
                 res.json({err: 'Unable to create this location.'})
             }
