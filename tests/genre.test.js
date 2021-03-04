@@ -2,61 +2,70 @@
 const request = require('supertest')
 const app = require('../app')
 let id;
+jest.setTimeout(30000);
 
+describe('CRUD Genre', () => {
 
-test('Create a genre return 200', async () => {
+  it('Create a genre return 200', async done => {
     const res = await request(app)
     .post('/genre/create')
     .send({
-      genre: 'Piplette'
+      genre: 'Genre de test'
     })
-    console.log(res.body)
     if (res.body.content._id) {
         id = res.body.content._id
     }
     expect(res.statusCode).toBe(200);
-});
+    done()
+  })
 
-test('Get genres return 200', async () => {
-    const res = await request(app)
-      .get('/genre')
-    expect(res.statusCode).toBe(200);
-});
+  it('Get genres return 200', async done => {
+      const res = await request(app)
+        .get('/genre')
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-test('Get a genre return 200', async () => {
-    const res = await request(app)
-      .get('/genre/' + id)
-    expect(res.statusCode).toBe(200);
-});
+  it('Get a genre return 200', async done => {
+      const res = await request(app)
+        .get('/genre/' + id)
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-test('Search genres return 200', async () => {
-    const res = await request(app)
-      .get('/genre/?genre=Pi&limit=3')
-    expect(res.statusCode).toBe(200);
-});
+  it('Search genres return 200', async done => {
+      const res = await request(app)
+        .get('/genre/?genre=Pi&limit=3')
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-// test('Update a genre return 200', async () => {
-//     const res = await request(app)
-//     .put('/genre/' + id)
-//     .send({
-//       genre: 'Paplus'
-//     })
-//     console.log(res.body)
-//     if (res.body.content._id) {
-//         id = res.body.content._id
-//     }
-//     expect(res.statusCode).toBe(200);
-// });
+  it('Update a genre return 200', async done => {
+      const res = await request(app)
+      .put('/genre/' + id)
+      .send({
+        genre: 'Genre de test modifié'
+      })
+      if (res.body.content._id) {
+          id = res.body.content._id
+      }
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-// test('Get a genre return 200', async () => {
-//     const res = await request(app)
-//       .get('/genre/' + id)
-//     expect(res.body.content.genre).toBe("Paplutardquhier")
-//     expect(res.statusCode).toBe(200);
-// });
+  it('Get a genre return 200', async done => {
+      const res = await request(app)
+        .get('/genre/' + id)
+      expect(res.body.content.genre).toBe("Genre de test modifié")
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-test('Delete a genre return 200', async () => {
-    const res = await request(app)
-      .delete('/genre/' + id)
-    expect(res.statusCode).toBe(200);
+  it('Delete a genre return 200', async done => {
+      const res = await request(app)
+        .delete('/genre/' + id)
+      expect(res.statusCode).toBe(200);
+      done()
+  })
+
 });

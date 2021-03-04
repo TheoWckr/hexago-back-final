@@ -333,7 +333,6 @@ router.patch("/update", parseImageUpload(),
     let emailUser = await User.find({
      email
     });
-    console.log(emailUser)
     if (emailUser.length > 1) {
         return res.status(400).json({
             msg: "Critical error This email already exists (twice or more)"
@@ -443,7 +442,7 @@ router.delete('/:id', async (req, res, next) => {
       });
     else {
       const user = await User.findById(req.params.id);
-      if (user.img.id != "") {
+      if (user != null && user.img.id != "") {
         await cloudinary.v2.uploader.destroy(user.img.id, { invalidate: true, resource_type: "raw" }, function(result, error) { if (error) { console.log(error)} else {console.log(result)} });
       }
       await User.findByIdAndDelete(req.params.id, (err, content) => {
@@ -556,14 +555,14 @@ router.get('/:id/verify/:token', async (req, res, next) => {
  */
 router.get("/me", auth, async (req, res) => {
   try {
-    console.log(req.user.id)
     // request.user is getting fetched from Middleware after token authentication
     const user = await User.findById(req.user.id);
     const tmpuser = user.toObject();
     delete tmpuser.password;
     res.json(tmpuser);
   } catch (e) {
-    res.send({ message: "Error in Fetching user" });
+    console.log(e)
+    res.send({ message: "Error in Fetching user " });
   }
 });
 

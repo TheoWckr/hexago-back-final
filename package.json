@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js",
-    "test": "jest",
+    "start": "node --no-deprecation start.js",
+    "test": "jest --forceExit --detectOpenHandles --maxWorkers=1",
     "publishToHeroku": "cd  && git subtree push --prefix back heroku master || true"
   },
   "dependencies": {
@@ -39,5 +39,8 @@
     "helmet": "^3.21.2",
     "jest": "^25.5.4",
     "mockingoose": "^2.13.2"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }

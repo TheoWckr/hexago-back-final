@@ -4,7 +4,10 @@ const app = require('../app')
 let id;
 
 
-test('Create a locations return 200', async () => {
+
+describe('CRUD Locations', () => {
+
+  it('Create a locations return 200', async done => {
     const res = await request(app)
     .post('/locations/create')
     .send({
@@ -17,22 +20,28 @@ test('Create a locations return 200', async () => {
         id = res.body.content._id
     }
     expect(res.statusCode).toBe(200);
-});
+    done()
+  })
 
-test('Get locations return 200', async () => {
-    const res = await request(app)
-      .get('/locations')
-    expect(res.statusCode).toBe(200);
-});
+  it('Get locations return 200', async done => {
+      const res = await request(app)
+        .get('/locations')
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-test('Get a locations return 200', async () => {
-    const res = await request(app)
-      .get('/locations/' + id)
-    expect(res.statusCode).toBe(200);
-});
+  it('Get a location by id return 200', async done => {
+      const res = await request(app)
+        .get('/locations/' + id)
+      expect(res.statusCode).toBe(200);
+      done()
+  })
 
-test('Delete a locations return 200', async () => {
-    const res = await request(app)
-      .delete('/locations/' + id)
-    expect(res.statusCode).toBe(200);
-}); 
+  it('Delete a locations return 200', async done => {
+      const res = await request(app)
+        .delete('/locations/' + id)
+      expect(res.statusCode).toBe(200);
+      done()
+  })
+
+});

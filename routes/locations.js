@@ -26,7 +26,6 @@ function logHandleError(err) {
 //get all locations
 router.get('/', (req, res, next) => {
     Locations.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });

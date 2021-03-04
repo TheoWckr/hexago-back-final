@@ -13,9 +13,16 @@ let app = express();
 app.use(cors());
 
 // connect to Mongo daemon
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log(err));
+if (process.env.JEST_WORKER_ID !== undefined) {
+  mongoose.connect(process.env.TEST_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
+} else {
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
+}
+
 
 
 let indexRouter = require('./routes');
@@ -82,7 +89,7 @@ const http = require('http').createServer(app);
 // require the socket.io module
 const io = require('socket.io');
 
-const port = process.env.PORT;
+
 
 const socket = io(http);
 //create an event listener
@@ -115,8 +122,6 @@ socket.on('connection', (socket)=>{
 });
 
 //wire up the server to listen to our port 500
-http.listen(port, ()=>{
-  console.log('connected to port: '+ port)
-});
+
 
 module.exports = app;
