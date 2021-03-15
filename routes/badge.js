@@ -26,7 +26,6 @@ function logHandleError(err) {
 //get all badges
 router.get('/', (req, res, next) => {
     Badge.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });

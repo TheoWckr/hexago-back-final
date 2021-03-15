@@ -34,7 +34,6 @@ function logHandleError(err) {
 //get all events
 router.get('/', (req, res, next) => {
     Event.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });
@@ -121,22 +120,9 @@ router.post('/create', auth, async (req, res, next) => {
         // put game id list with event to create
         eventToCreate.listGames = eventToCreateGameDetailsId;
         // TODO changer le localhost:3100 par url en production
-        await new Promise((resolve, reject) => {
-            unirest('GET', 'http://localhost:'+ process.env.PORT +'/users/me')
-            .headers({
-                'token': req.header("token")
-            })
-            .end(function (me_res) {
-                if (me_res.error) {
-                    reject(me_res.error)
-                } else {
-                    resolve(me_res.body);
-                    eventToCreate.owner = me_res.body._id
-                    eventToCreate.listPlayers = [];
-                    eventToCreate.listPlayers.push(me_res.body._id)
-                }
-            });
-        })
+        eventToCreate.owner = req.user.id
+        eventToCreate.listPlayers = [];
+        eventToCreate.listPlayers.push(req.user.id)
         // create event in bdd
         Event.create(eventToCreate, (err, content) => {
             if (err) res.json({err: err});
@@ -220,7 +206,6 @@ router.get('/searchlist', async (req, res, next) => {
             $gte: new Date(date),
             $lt: new Date(laterDate)
         }
-        console.log(data);
     }
     //search by localisation
     if (req.query.locationId){
@@ -264,7 +249,6 @@ router.get('/searchlist', async (req, res, next) => {
                     date: content[current].date,
                     _id: content[current]._id
                 });
-                console.log(data);
             }
             res.send({content:data});
         });
@@ -354,7 +338,6 @@ router.put('/subscribe/:id', auth, async (req, res) => {
         }
         else {
             const event = await Event.findById(req.params.id);
-            console.log(event.listPlayers.indexOf(req.user.id))
             if (event.listPlayers.indexOf(req.user.id) == -1 && event.owner != req.user.id)  {
                 event.listPlayers.push(req.user.id);
                 await event.save()
