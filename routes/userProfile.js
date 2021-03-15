@@ -9,7 +9,6 @@ const auth = require("../middleware/auth");
 
 router.get('/', (req, res, next) => {
   userProfile.find({}, function (err, content) {
-      console.log(content);
       if (err) res.json({
           err: err
       });
@@ -63,7 +62,6 @@ router.patch("/update/:id", async (req, res) => {
     if (req.body.favoriteGames) {
       user.favoriteGames = req.body.favoriteGames
     }
-    console.log(user);
 
     await user.save();
     res.status(200).json({ content: user});

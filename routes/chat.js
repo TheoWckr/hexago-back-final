@@ -23,7 +23,6 @@ router.post('/create', (req, res, next) => {
 
 router.get('/', (req, res, next) => {
     Chat.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });
@@ -35,7 +34,6 @@ router.get('/', (req, res, next) => {
 
 router.get('/', (req, res, next) => {
     Chat.find({}, function (err, content) {
-        console.log(content);
         if (err) res.json({
             err: err
         });

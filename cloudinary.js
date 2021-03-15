@@ -41,7 +41,6 @@ const deleteImage = (id) => {
   //   folder: 'hexago',
   //   format: 'png'
   // }
-  console.log(id)
   return new Promise((resolve, reject) => {
     cloudinary.v2.uploader.destroy(id, function (error, result) {
       if (error) {
