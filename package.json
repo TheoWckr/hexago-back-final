@@ -8,6 +8,7 @@
     "publishToHeroku": "cd  && git subtree push --prefix back heroku master || true"
   },
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "async": "^3.2.0",
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
@@ -33,7 +34,8 @@
     "supertest": "^4.0.2",
     "unirest": "^0.6.0",
     "uuid": "^8.3.2",
-    "validator": "^12.2.0"
+    "validator": "^12.2.0",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "helmet": "^3.21.2",
