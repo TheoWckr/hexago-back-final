@@ -5,6 +5,9 @@ let cookieParser = require('cookie-parser');
 const logger = require('morgan');
 let mongoose = require('mongoose');
 const dotEnv = require('dotenv');
+let morgan = require('morgan');
+const winston = require('./config/winston')
+const logger = require('./config/winston')
 
 dotEnv.config();
 
@@ -15,12 +18,28 @@ app.use(cors());
 // connect to Mongo daemon
 if (process.env.JEST_WORKER_ID !== undefined) {
   mongoose.connect(process.env.TEST_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .then(() => logger.info(
+      {
+        level: 'info',
+        label: 'BDD',
+        message: 'MongoDB Connected'}))
+  .catch(err => logger.info(
+      {
+        level: 'error',
+        label: 'JEST',
+        message: err}));
 } else {
   mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .then(() => logger.info(
+      {
+        level: 'info',
+        label: 'BDD',
+        message: 'MongoDB Connected'}))
+  .catch(err => logger.info(
+      {
+        level: 'error',
+        label: 'BDD',
+        message: err}));
 }
 
 
@@ -37,7 +56,7 @@ let ChatRouter = require('./routes/chat');
 
 
 
-
+app.use(morgan('combined', { stream: winston.stream }));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -95,7 +114,7 @@ const socket = io(http);
 //create an event listener
 
 
-
+app.use(morgan('combined', { stream: winston.stream }));
 //To listen to messages
 socket.on('connection', (socket)=>{
   console.log('connection');
