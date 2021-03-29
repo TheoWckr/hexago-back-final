@@ -2,6 +2,7 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 let validator = require('validator');
+const chat = require('../models/chat');
 
 let EventSchema = new Schema({
     duration:{
@@ -44,7 +45,12 @@ let EventSchema = new Schema({
     listGames:[{
         type: Schema.Types.ObjectID, ref:'GameDetails',
         required: true
-    }]
+    }],
+    // chat
+    chat: {
+        type: Schema.Types.ObjectID, ref:'Chat',
+        required: true
+    },
 });
 EventSchema.index({title: 'text', content: 'text', "content:encoded": 'text'});
 

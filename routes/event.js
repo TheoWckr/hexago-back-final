@@ -9,6 +9,8 @@ let moment = require('moment');
 moment().format();
 const auth = require("../middleware/auth");
 const dotEnv = require('dotenv');
+const chat = require('../models/chat');
+const User = require('../models/users');
 
 dotEnv.config();
 
@@ -92,6 +94,17 @@ router.get('/', (req, res, next) => {
         "details": "bobibobou",
         "locationId": "Montpellier",
         "owner": "5e78ab08122bd31750df8c90",
+        "chat": {
+            "userIdList": [
+                "5fa424e6c4c5be08c7809355"
+            ],
+            "userIdNames": [],
+            "eventId": null,
+            "_id": "6061cadb9616a705d31dc94d",
+            "messages": [],
+            "dateCreation": "2021-03-29T12:40:59.705Z",
+            "__v": 0
+        },
         "__v": 0
     },
     "msg": "Event created successfully."
@@ -123,16 +136,36 @@ router.post('/create', auth, async (req, res, next) => {
         eventToCreate.owner = req.user.id
         eventToCreate.listPlayers = [];
         eventToCreate.listPlayers.push(req.user.id)
+        // create event chat
+        const eventChat = new chat({
+            "userIdList": eventToCreate.listPlayers,
+            "messages": [],
+        });
+        eventToCreate.chat = eventChat._id;
+        var promise = new Promise((resolve, reject) => {
+            eventChat.userIdList.forEach(async function(id, index, array) {
+                await User.findById(id, (err, content) => {
+                    if (content) {
+                        eventChat.userIdNames.push(content.firstname + " " + content.lastname)
+                    }
+                })
+                if (index === array.length -1) resolve();
+            });
+        });
         // create event in bdd
-        Event.create(eventToCreate, (err, content) => {
-            if (err) res.json({err: err});
-            else {
-                if (content) {
-                    res.json({content: content, msg: 'Event created successfully.'})
-                } else {
-                    res.json({err: 'Unable to create this event.'})
+        promise.then(() => {
+            Event.create(eventToCreate, async (err, content) => {
+                if (err) res.json({err: err});
+                else {
+                    if (content) {
+                        eventChat.eventId = content._id
+                        await eventChat.save();
+                        res.json({content: content, msg: 'Event created successfully.'})
+                    } else {
+                        res.json({err: 'Unable to create this event.'})
+                    }
                 }
-            }
+            })
         })
     } else {
         res.json({error: 'the following games ' + errorCheck + ' do no exist.'});
@@ -184,6 +217,17 @@ router.post('/create', auth, async (req, res, next) => {
         "owner": {
             "_id": "5e78ab08122bd31750df8c90",
             "username": "Pip"
+        },
+        "chat": {
+            "userIdList": [
+                "5fa424e6c4c5be08c7809355"
+            ],
+            "userIdNames": [],
+            "eventId": null,
+            "_id": "6061cadb9616a705d31dc94d",
+            "messages": [],
+            "dateCreation": "2021-03-29T12:40:59.705Z",
+            "__v": 0
         },
         "__v": 0,
         "currentPlayers": 1
@@ -291,6 +335,17 @@ router.get('/searchlist', async (req, res, next) => {
             "_id": "5e78ab08122bd31750df8c90",
             "username": "Pip"
         },
+        "chat": {
+            "userIdList": [
+                "5fa424e6c4c5be08c7809355"
+            ],
+            "userIdNames": [],
+            "eventId": null,
+            "_id": "6061cadb9616a705d31dc94d",
+            "messages": [],
+            "dateCreation": "2021-03-29T12:40:59.705Z",
+            "__v": 0
+        },
         "__v": 0,
         "currentPlayers": 1
     }
@@ -340,9 +395,11 @@ router.put('/subscribe/:id', auth, async (req, res) => {
             const event = await Event.findById(req.params.id);
             if (event.listPlayers.indexOf(req.user.id) == -1 && event.owner != req.user.id)  {
                 event.listPlayers.push(req.user.id);
+                const eventChat = await chat.findById(event.chat);
+                eventChat.userIdList.push(req.user.id);
+                await eventChat.save()
                 await event.save()
             }
-
             res.json({content: event});
         }
     } catch (e) {
@@ -363,15 +420,20 @@ router.put('/unsubscribe/:id', auth, async (req, res) => {
         }
         else {
             const event = await Event.findById(req.params.id);
-            if (event.listPlayers.indexOf(event.owner) !== -1) {
+            const eventChat = await chat.findById(event.chat);
+            if (event.owner.equals(req.user.id)) {
                 res.json({error: "You can't unsubscribe of your own event"});
             } else {
                 if (event.listPlayers.indexOf(req.user.id) != -1)  {
                     event.listPlayers.splice(event.listPlayers.indexOf(req.user.id), 1);
+                    eventChat.userIdList.splice(eventChat.userIdList.indexOf(req.user.id), 1);
+                    await eventChat.save()
                     await event.save()
                 }
                 if (event.owner == req.user.id && req.body.playerId) {
                     event.listPlayers.splice(event.listPlayers.indexOf(req.params.playerId), 1);
+                    eventChat.userIdList.splice(eventChat.userIdList.indexOf(req.params.playerId), 1);
+                    await eventChat.save()
                     await event.save()
                 }
 
@@ -404,7 +466,7 @@ router.put('/unsubscribe/:id', auth, async (req, res) => {
     "msg": "Event deleted successfully."
 }
  */
-router.delete('/:id', auth, (req, res, next) => {
+router.delete('/:id', auth, async (req, res, next) => {
     if (!req.params.id) res.json({
         err: 'Please provide an id param.'
     });
@@ -412,7 +474,14 @@ router.delete('/:id', auth, (req, res, next) => {
         res.json({
             err: 'Please provide a valid id param.'
         });
-    else
+    else {
+        const event = await Event.findById(req.params.id);
+        chat.findByIdAndDelete(event.chat, (err) => {
+            if (err) {
+                res.json({err: err});
+                return;
+            }
+        })
         Event.findByIdAndDelete(req.params.id, (err, content) => {
             if (err) res.json({
                 err: err
@@ -429,6 +498,7 @@ router.delete('/:id', auth, (req, res, next) => {
                 })
             }
         })
+    }
 });
 
 //--------------------------------------------------------------------------------------------------
