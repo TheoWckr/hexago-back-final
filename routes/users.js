@@ -167,6 +167,7 @@ router.post(
                   console.log(error.message)
               });
           }
+          await newUserProfile.save()
           await user.save();
           const payload = {
               user: {
