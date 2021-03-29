@@ -2,7 +2,7 @@ let createError = require('http-errors');
 let express = require('express');
 let path = require('path');
 let cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const loggerMorgan = require('morgan');
 let mongoose = require('mongoose');
 const dotEnv = require('dotenv');
 let morgan = require('morgan');
@@ -61,7 +61,7 @@ app.use(morgan('combined', { stream: winston.stream }));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
+app.use(loggerMorgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -117,26 +117,25 @@ const socket = io(http);
 app.use(morgan('combined', { stream: winston.stream }));
 //To listen to messages
 socket.on('connection', (socket)=>{
-  console.log('connection');
   socket.on("newMessage", async function(msg, userId, chatId) {
-    console.log("message: " + msg);
-
-    //broadcast message to everyone in port:5000 except yourself.
-    // socket.broadcast.emit("received", { message: msg });
 
     //save chat to the database
     let Chat = require('./models/chat');
     const chat = await Chat.findById(chatId);
     chat.messages.push({userId: userId, message: msg})
     chat.save();
-    // mongoose.connect('mongodb://localhost:27017/hexago', { useNewUrlParser: true })
-    //   .then(async (db) => {
-    //     console.log("connected correctly to the server");
-    //     const chat = await Chat.findById(chatId);
-    //     chat.messages.push({userId: userId, message: msg})
-    //     chat.save();
-    //   })
-    //   .catch(err => console.log(err));
+
+    socket.broadcast.emit("message", msg, chat._id);
+  });
+  socket.on("writingMessage", async function(userId, chatId) {
+    let Chat = require('./models/chat');
+    const chat = await Chat.findById(chatId);
+    socket.broadcast.emit("writing", userId, chat._id, chat.userIdList);
+  });
+  socket.on("stopWritingMessage", async function(userId, chatId) {
+    let Chat = require('./models/chat');
+    const chat = await Chat.findById(chatId);
+    socket.broadcast.emit("stopWriting", userId, chat._id, chat.userIdList);
   });
 });
 
