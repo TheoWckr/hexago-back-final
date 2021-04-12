@@ -13,10 +13,7 @@ dotEnv.config();
 
 let cors = require('cors');
 let app = express();
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true
-}));
+app.use(cors());
 
 // connect to Mongo daemon
 if (process.env.JEST_WORKER_ID !== undefined) {
